@@ -78,8 +78,8 @@ public class RobotTeleopLotus extends LinearOpMode {
     // ---------------------------------- //
     public static int LIFT_HEIGHTS[] = {
             0,
-            440,
-            850
+            380,
+            840
     };
     // ---------------------------------- //
     public static int EXTENDO_LENGTHS[] = {
