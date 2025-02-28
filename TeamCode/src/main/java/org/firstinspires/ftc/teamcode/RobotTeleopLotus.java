@@ -64,15 +64,15 @@ public class RobotTeleopLotus extends LinearOpMode {
     public static double PTO_DEFAULT_POSITION = 0.01;
     public static double PTO_ENGAGE_POSITION = 0.58;
     // ---------------------------------- //
-    public static double SWEEPER_OUT_POSITION = .1639;
-    public static double SWEEPER_IN_POSITION = .4867;
+    public static double SWEEPER_OUT_POSITION = 0.15;
+    public static double SWEEPER_IN_POSITION = .57;
     // ---------------------------------- //
-    public static double CLAW_OPEN_POSITION = .37;
+    public static double CLAW_OPEN_POSITION = .25;
     public static double CLAW_CLOSED_POSITION = .74;
     // ---------------------------------- //
-    public static double PIVOT_DOWN_POSITION = 0.349;
+    public static double PIVOT_DOWN_POSITION = 0.335;
     public static double PIVOT_MID_POSITION = 0.56;
-    public static double PIVOT_UP_POSITION = .962;
+    public static double PIVOT_UP_POSITION = .95;
     // ---------------------------------- //
 
     // ---------------------------------- //
@@ -144,6 +144,7 @@ public class RobotTeleopLotus extends LinearOpMode {
 
         // Intake
         double intakePower = 0;
+        boolean passiveIntakeOn = false;
 
 
         // Claw
@@ -173,8 +174,8 @@ public class RobotTeleopLotus extends LinearOpMode {
         leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftLift.setPower(.8);
-        rightLift.setPower(.8);
+        leftLift.setPower(1);
+        rightLift.setPower(1);
 
         leftLift.setTargetPosition(0);
         rightLift.setTargetPosition(0);
@@ -188,7 +189,6 @@ public class RobotTeleopLotus extends LinearOpMode {
         extendo.setDirection(DcMotor.Direction.FORWARD);
         extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extendo.setPower(1);
-        extendo.setTargetPosition(0);
 
 
         waitForStart();
@@ -200,7 +200,7 @@ public class RobotTeleopLotus extends LinearOpMode {
             double x = gamepad1.left_stick_x * 1.05; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
-            int rightLiftPos = rightLift.getCurrentPosition();
+            int extendoPos = extendo.getCurrentPosition();
             int leftLiftPos = leftLift.getCurrentPosition();
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -233,6 +233,7 @@ public class RobotTeleopLotus extends LinearOpMode {
             if(gamepad1.a && !pLoopA && extendoLevel > 0) {
                 extendoLevel = 0;
                 clawOpen = true;
+                passiveIntakeOn = true;
             } else if(gamepad1.a && !pLoopA && extendoLevel == 0) {
                 extendoLevel = 1;
                 pivotMid = true;
@@ -241,6 +242,12 @@ public class RobotTeleopLotus extends LinearOpMode {
             if (extendoLevel == 1 && gamepad1.right_bumper) {
                 extendoLevel = 2;
             }
+
+            if (extendoPos < 10 && (leftLiftPos > 100 || clawOpen)) {
+                passiveIntakeOn = false;
+            }
+
+
 
             pLoopA = gamepad1.a;
 
@@ -303,8 +310,8 @@ public class RobotTeleopLotus extends LinearOpMode {
 
             intakePower = gamepad1.left_trigger - gamepad1.right_trigger;
 
-            if (!clawOpen) {
-                intakePower = -.8;
+            if (passiveIntakeOn) {
+                intakePower = -.5;
             }
 
             // ----------------CLAW------------------ //
@@ -319,6 +326,7 @@ public class RobotTeleopLotus extends LinearOpMode {
                 if (clawOpen) {
                     clawPosition = CLAW_OPEN_POSITION;
                 } else {
+                    passiveIntakeOn = true;
                     clawPosition = CLAW_CLOSED_POSITION;
                 }
             }
