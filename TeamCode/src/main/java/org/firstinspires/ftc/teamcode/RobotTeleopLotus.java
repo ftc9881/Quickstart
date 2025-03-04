@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -58,21 +59,27 @@ public class RobotTeleopLotus extends LinearOpMode {
     public DcMotor leftLift = null;
     public DcMotor rightLift = null;
     // ---------------------------------- //
+    //not sure if its right
+//    public ColorSensor sensor = null;
+    // ---------------------------------- //
     public static double ARM_DOWN_POSITION = .93;
+    public static double ARM_MID_POSITION = .26;
     public static double ARM_UP_POSITION = .21;
     // ---------------------------------- //
-    public static double PTO_DEFAULT_POSITION = 0.01;
-    public static double PTO_ENGAGE_POSITION = 0.58;
+    public static double INTAKE_SLOW_SPEED = -.3;
     // ---------------------------------- //
-    public static double SWEEPER_OUT_POSITION = 0.15;
-    public static double SWEEPER_IN_POSITION = .57;
+    public static double PTO_DEFAULT_POSITION = 0.99;
+    public static double PTO_ENGAGE_POSITION = 0.01;
     // ---------------------------------- //
-    public static double CLAW_OPEN_POSITION = .25;
+    public static double SWEEPER_OUT_POSITION = 0.33;
+    public static double SWEEPER_IN_POSITION = .65;
+    // ---------------------------------- //
+    public static double CLAW_OPEN_POSITION = .29;
     public static double CLAW_CLOSED_POSITION = .74;
     // ---------------------------------- //
-    public static double PIVOT_DOWN_POSITION = 0.335;
-    public static double PIVOT_MID_POSITION = 0.56;
-    public static double PIVOT_UP_POSITION = .95;
+    public static double PIVOT_DOWN_POSITION = 0.295;
+    public static double PIVOT_MID_POSITION = 0.51;
+    public static double PIVOT_UP_POSITION = .94;
     // ---------------------------------- //
 
     // ---------------------------------- //
@@ -112,6 +119,8 @@ public class RobotTeleopLotus extends LinearOpMode {
         intake = hardwareMap.get(CRServo.class, "intake"); //3
         claw = hardwareMap.get(Servo.class, "claw"); //4
         pivot = hardwareMap.get(Servo.class, "pivot"); //5
+
+//        sensor = hardwareMap.get(ColorSensor.class, "sensor");
 
         // Drive
 
@@ -158,6 +167,13 @@ public class RobotTeleopLotus extends LinearOpMode {
         boolean pivotMid = false;
         double pivotPosition = PIVOT_UP_POSITION;
 
+        //pto
+        double ptoPosition = PTO_DEFAULT_POSITION;
+        boolean ptoEngaged = false;
+        int count = 0;
+
+        boolean susExtendoFix = false;
+        boolean PLoopTwoA = false;
         // Lift
 
         int liftLevel = 0;
@@ -198,7 +214,7 @@ public class RobotTeleopLotus extends LinearOpMode {
         while (opModeIsActive()) {
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.05; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
+            double rx = gamepad1.right_stick_x * .8;
 
             int extendoPos = extendo.getCurrentPosition();
             int leftLiftPos = leftLift.getCurrentPosition();
@@ -213,10 +229,10 @@ public class RobotTeleopLotus extends LinearOpMode {
             double backRightPower = (y + x - rx) / denominator;
 
             if (gamepad1.left_bumper) {
-                frontLeftPower *= .3;
-                backLeftPower *= .3;
-                frontRightPower *= .3;
-                backRightPower *= .3;
+                frontLeftPower *= .45;
+                backLeftPower *= .45;
+                frontRightPower *= .45;
+                backRightPower *= .45;
             }
 
             leftFront.setPower(frontLeftPower);
@@ -245,6 +261,16 @@ public class RobotTeleopLotus extends LinearOpMode {
 
             if (extendoPos < 10 && (leftLiftPos > 100 || clawOpen)) {
                 passiveIntakeOn = false;
+            }
+
+            if (gamepad2.a) {
+                extendo.setTargetPosition(-300);
+            }
+
+            if (gamepad2.b) {
+                extendo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                extendo.setTargetPosition(0);
+
             }
 
 
@@ -277,15 +303,31 @@ public class RobotTeleopLotus extends LinearOpMode {
                 liftLevel = 0;
             }
 
+            if (!armDown && gamepad1.right_stick_button) {
+                armPosition = ARM_MID_POSITION;
+            } else if (!armDown) {
+                armPosition = ARM_UP_POSITION;
+            }
+
+
             pLoopX = gamepad1.x;
 
             // -----------------PTO---------------- // engage done, for some reason the disengage doesnt work, probably a servo issue
 
-//            if (gamepad1.dpad_down) {
-//                pto.setPosition(PTO_ENGAGE_POSITION);
-//            } else if (gamepad1.dpad_right) {
-//                pto.setPosition(PTO_DEFAULT_POSITION);
-//            }
+            if (gamepad1.dpad_down) {
+                count++;
+            }
+            if (!gamepad1.dpad_down) {
+                count = 0;
+            }
+            if (gamepad1.dpad_down && count > 300) {
+                ptoEngaged = true;
+            }
+            if (ptoEngaged) {
+                ptoPosition = PTO_ENGAGE_POSITION;
+            } else {
+                ptoPosition = PTO_DEFAULT_POSITION;
+            }
 
             //sweeper out + pivot
 
@@ -296,7 +338,7 @@ public class RobotTeleopLotus extends LinearOpMode {
                 extendoLevel = 1;
                 pivotMid = true;
             }
-            if (gamepad1.dpad_left) {
+            if (!gamepad1.dpad_up) {
                 sweeperIn = false;
             }
 
@@ -311,7 +353,7 @@ public class RobotTeleopLotus extends LinearOpMode {
             intakePower = gamepad1.left_trigger - gamepad1.right_trigger;
 
             if (passiveIntakeOn) {
-                intakePower = -.5;
+                intakePower = INTAKE_SLOW_SPEED;
             }
 
             // ----------------CLAW------------------ //
@@ -366,6 +408,8 @@ public class RobotTeleopLotus extends LinearOpMode {
 
             pivot.setPosition(pivotPosition);
 
+            pto.setPosition(ptoPosition);
+
             telemetry.addData("Extendo Position", extendo.getCurrentPosition());
             telemetry.addData("Left Lift Position", leftLift.getCurrentPosition());
             telemetry.addData("Right Lift Position: ", rightLift.getCurrentPosition());
@@ -380,6 +424,17 @@ public class RobotTeleopLotus extends LinearOpMode {
             telemetry.addData("sweeperIn: ", sweeperIn);
             telemetry.addData("clawOpen: ", clawOpen);
             telemetry.addData("pivotUp: ", pivotUp);
+
+//            int rgb = sensor.argb();
+//            int red = sensor.red();
+//            int green = sensor.green();
+//            int blue = sensor.blue();
+//            int alpha = sensor.alpha();
+//            telemetry.addData("rgb: ", rgb);
+//            telemetry.addData("red: ", red);
+//            telemetry.addData("green: ", green);
+//            telemetry.addData("blue: ", blue);
+//            telemetry.addData("alpha: ", alpha);
 
 
             telemetry.update();

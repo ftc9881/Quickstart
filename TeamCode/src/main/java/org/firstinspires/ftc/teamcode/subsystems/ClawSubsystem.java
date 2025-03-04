@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.CLAW_CLOSED_POSITION;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.arcrobotics.ftclib.command.SubsystemBase;
@@ -7,11 +9,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ClawSubsystem extends SubsystemBase  {
     private Servo claw;
-    private double target;
+    private double target = CLAW_CLOSED_POSITION;
 
     public ClawSubsystem (HardwareMap hMap) {
         claw = hMap.get(Servo.class, "claw");
-
     }
 
     @Override
