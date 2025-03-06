@@ -68,11 +68,12 @@ public class RobotTeleopLotus extends LinearOpMode {
     // ---------------------------------- //
     public static double INTAKE_SLOW_SPEED = -.3;
     // ---------------------------------- //
-    public static double PTO_DEFAULT_POSITION = 0.99;
-    public static double PTO_ENGAGE_POSITION = 0.01;
+    public static double PTO_DEFAULT_POSITION = 0.2;
+    public static double PTO_RELEASE_POSITION = 0.38;
+    public static double PTO_ENGAGE_POSITION = .90;
     // ---------------------------------- //
-    public static double SWEEPER_OUT_POSITION = 0.33;
-    public static double SWEEPER_IN_POSITION = .65;
+    public static double SWEEPER_OUT_POSITION = 0.30;
+    public static double SWEEPER_IN_POSITION = .62;
     // ---------------------------------- //
     public static double CLAW_OPEN_POSITION = .29;
     public static double CLAW_CLOSED_POSITION = .74;
@@ -174,6 +175,9 @@ public class RobotTeleopLotus extends LinearOpMode {
 
         boolean susExtendoFix = false;
         boolean PLoopTwoA = false;
+
+        boolean prevY2 = false;
+
         // Lift
 
         int liftLevel = 0;
@@ -229,11 +233,20 @@ public class RobotTeleopLotus extends LinearOpMode {
             double backRightPower = (y + x - rx) / denominator;
 
             if (gamepad1.left_bumper) {
-                frontLeftPower *= .45;
-                backLeftPower *= .45;
-                frontRightPower *= .45;
-                backRightPower *= .45;
+                frontLeftPower *= .38;
+                backLeftPower *= .38;
+                frontRightPower *= .38;
+                backRightPower *= .38;
             }
+
+            if (gamepad2.x) {
+                frontLeftPower = -1;
+                backLeftPower = -1;
+                frontRightPower = .5;
+                backRightPower = .5;
+            }
+
+
 
             leftFront.setPower(frontLeftPower);
             leftRear.setPower(backLeftPower);
@@ -263,15 +276,7 @@ public class RobotTeleopLotus extends LinearOpMode {
                 passiveIntakeOn = false;
             }
 
-            if (gamepad2.a) {
-                extendo.setTargetPosition(-300);
-            }
 
-            if (gamepad2.b) {
-                extendo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                extendo.setTargetPosition(0);
-
-            }
 
 
 
@@ -312,24 +317,15 @@ public class RobotTeleopLotus extends LinearOpMode {
 
             pLoopX = gamepad1.x;
 
-            // -----------------PTO---------------- // engage done, for some reason the disengage doesnt work, probably a servo issue
+            // -----------------PTO---------------- // servo issue
 
-            if (gamepad1.dpad_down) {
-                count++;
+            if (gamepad2.y && ptoPosition != PTO_ENGAGE_POSITION) {
+                ptoPosition = PTO_RELEASE_POSITION;
             }
-            if (!gamepad1.dpad_down) {
-                count = 0;
-            }
-            if (gamepad1.dpad_down && count > 300) {
-                ptoEngaged = true;
-            }
-            if (ptoEngaged) {
+
+            if (gamepad2.right_bumper && (ptoPosition == PTO_RELEASE_POSITION)) {
                 ptoPosition = PTO_ENGAGE_POSITION;
-            } else {
-                ptoPosition = PTO_DEFAULT_POSITION;
             }
-
-            //sweeper out + pivot
 
             // ----------------SWEEPER----------------- // done
 
@@ -391,10 +387,47 @@ public class RobotTeleopLotus extends LinearOpMode {
                 pivotPosition = PIVOT_UP_POSITION;
             }
 
-            leftLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
-            rightLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
 
-            extendo.setTargetPosition(EXTENDO_LENGTHS[extendoLevel]);
+
+
+
+//-------------------------------------------------------
+
+            if (gamepad2.a) {
+                extendo.setTargetPosition(-350);
+                leftLift.setTargetPosition(-350);
+                rightLift.setTargetPosition(-350);
+            } else {
+
+                leftLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
+                rightLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
+
+                extendo.setTargetPosition(EXTENDO_LENGTHS[extendoLevel]);
+
+            }
+
+            if (gamepad2.b) {
+                extendo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                extendo.setTargetPosition(0);
+                leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                leftLift.setTargetPosition(0);
+                rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                rightLift.setTargetPosition(0);
+                leftLift.setDirection(DcMotor.Direction.FORWARD);
+                rightLift.setDirection(DcMotor.Direction.REVERSE);
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                extendo.setDirection(DcMotor.Direction.FORWARD);
+                extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftLift.setPower(1);
+                rightLift.setPower(1);
+                extendo.setPower(1);
+            }
+
+//            leftLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
+//            rightLift.setTargetPosition(LIFT_HEIGHTS[liftLevel]);
+//
+//            extendo.setTargetPosition(EXTENDO_LENGTHS[extendoLevel]);
 
             arm.setPosition(armPosition);
 
@@ -410,6 +443,7 @@ public class RobotTeleopLotus extends LinearOpMode {
 
             pto.setPosition(ptoPosition);
 
+
             telemetry.addData("Extendo Position", extendo.getCurrentPosition());
             telemetry.addData("Left Lift Position", leftLift.getCurrentPosition());
             telemetry.addData("Right Lift Position: ", rightLift.getCurrentPosition());
@@ -419,6 +453,9 @@ public class RobotTeleopLotus extends LinearOpMode {
             telemetry.addData("intakePower: ", intakePower);
             telemetry.addData("clawPosition: ", clawPosition);
             telemetry.addData("pivotPosition: ", pivotPosition);
+
+            telemetry.addData("PTO AHHGHH: ", ptoPosition);
+
 
             telemetry.addData("armDown: ", armDown);
             telemetry.addData("sweeperIn: ", sweeperIn);

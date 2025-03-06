@@ -372,6 +372,7 @@ public class FourSampleAuto extends OpMode {
                         //sample 0-1 retract + pre-extend
                         new ParallelCommandGroup(
                                 new LiftCommand(lift, 0),
+                                new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
                                 new IntakeCommand(intake, -1)
                         ),

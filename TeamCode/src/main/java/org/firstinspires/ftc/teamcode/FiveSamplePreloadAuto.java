@@ -348,7 +348,7 @@ public class FiveSamplePreloadAuto extends OpMode {
                 new SequentialCommandGroup(
                         //Initial Conditions
                         new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                        new SweeperCommand(sweeper, SWEEPER_OUT_POSITION),
+                        new SweeperCommand(sweeper, SWEEPER_IN_POSITION),
                         new ArmCommand(arm, ARM_UP_POSITION),
 
 
