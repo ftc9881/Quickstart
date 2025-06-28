@@ -9,7 +9,7 @@ public class LiftSubsystem extends SubsystemBase  {
     private DcMotor rightLiftMotor;
 
     private int target;
-    private int tolerance = 5;
+    private int tolerance = 30;
 
     public LiftSubsystem (HardwareMap hMap) {
         leftLiftMotor = hMap.get(DcMotor.class, "leftLift");

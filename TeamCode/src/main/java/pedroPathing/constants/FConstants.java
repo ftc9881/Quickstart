@@ -20,33 +20,33 @@ public class FConstants {
         FollowerConstants.rightFrontMotorDirection = DcMotorSimple.Direction.FORWARD;
         FollowerConstants.rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
 
-        FollowerConstants.mass = 10.5;
+        FollowerConstants.mass = 12.41;
 
-        FollowerConstants.xMovement = 67.59254;
-        FollowerConstants.yMovement = 64.9471;
+        FollowerConstants.xMovement = 79.2;
+        FollowerConstants.yMovement = 65.78;
 
-        FollowerConstants.forwardZeroPowerAcceleration = -39.47494;
-        FollowerConstants.lateralZeroPowerAcceleration = -72.43736;
+        FollowerConstants.forwardZeroPowerAcceleration = -28.26;
+        FollowerConstants.lateralZeroPowerAcceleration = -63.95;
 
-        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.1,0,0.01,0);
+        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.108,0,0.011,0);
         FollowerConstants.useSecondaryTranslationalPID = false;
         FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0.1,0,0.01,0); // Not being used, @see useSecondaryTranslationalPID
 
-        FollowerConstants.headingPIDFCoefficients.setCoefficients(2,0,0.1,0);
-        FollowerConstants.useSecondaryHeadingPID = false;
-        FollowerConstants.secondaryHeadingPIDFCoefficients.setCoefficients(2,0,0.1,0); // Not being used, @see useSecondaryHeadingPID
+        FollowerConstants.headingPIDFCoefficients.setCoefficients(0.75,0,0.02,0);
+        FollowerConstants.useSecondaryHeadingPID = true;
+        FollowerConstants.secondaryHeadingPIDFCoefficients.setCoefficients(1,0,0.1,0); // Not being used, @see useSecondaryHeadingPID
 
-        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.010,0,0.0002,0.6,0);
-        FollowerConstants.useSecondaryDrivePID = false;
-        FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.1,0,0,0.6,0); // Not being used, @see useSecondaryDrivePID
+        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.0066,0,0.0002,0.6,0);
+        FollowerConstants.useSecondaryDrivePID = true;
+        FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.0053,0,0.00009,0.6,0); // Not being used, @see useSecondaryDrivePID
 
-        FollowerConstants.zeroPowerAccelerationMultiplier = 4.1;
-        FollowerConstants.centripetalScaling = 0.00028;
+        FollowerConstants.zeroPowerAccelerationMultiplier = 6.0;
+        FollowerConstants.centripetalScaling = 0.00026;
 
-        FollowerConstants.pathEndTimeoutConstraint = 500;
+        FollowerConstants.pathEndTimeoutConstraint = 400;
         FollowerConstants.pathEndTValueConstraint = 0.995;
-        FollowerConstants.pathEndVelocityConstraint = 0.1;
-        FollowerConstants.pathEndTranslationalConstraint = 0.1;
-        FollowerConstants.pathEndHeadingConstraint = 0.007;
+        FollowerConstants.pathEndVelocityConstraint = 0.2;
+        FollowerConstants.pathEndTranslationalConstraint = 0.12;
+        FollowerConstants.pathEndHeadingConstraint = 0.001;
     }
 }

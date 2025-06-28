@@ -85,7 +85,7 @@ public class FiveSamplePreloadAuto extends OpMode {
     private final Pose sampleTwoPosition = new Pose(16.4, 132.38, Math.toRadians(0));
 
     /** Third Yellow Sample */
-    private final Pose sampleThreePosition = new Pose(16.44, 130.63, Math.toRadians(30));
+    private final Pose sampleThreePosition = new Pose(16.44, 130.63, Math.toRadians(25));
 
     /** Teammate's Sample */
     private final Pose teammateSamplePosition = new Pose(12.00, 96.11, Math.toRadians(270));
@@ -206,6 +206,8 @@ public class FiveSamplePreloadAuto extends OpMode {
                 )
                 .setLinearHeadingInterpolation(bucketPosition.getHeading(), ascentPosition.getHeading())
                 .build());
+
+
 
 
 
@@ -396,7 +398,7 @@ public class FiveSamplePreloadAuto extends OpMode {
                                 new ArmCommand(arm, ARM_UP_POSITION),
                                 new SequentialCommandGroup(
                                         new PedroCommand(follower, paths.get(2)),
-                                        new ExtendoCommand(extendo, 240)
+                                        new ExtendoCommand(extendo, 200)
                                 )
                         ),
 
@@ -410,13 +412,16 @@ public class FiveSamplePreloadAuto extends OpMode {
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                                new PedroCommand(follower, paths.get(3)),
+                                new SequentialCommandGroup(
+                                        new PedroCommand(follower, paths.get(3)),
+                                        new ExtendoCommand(extendo, 380)
+                                ),
+
                                 new IntakeCommand(intake, -1)
                         ),
 
                         //sample 2 grab
 
-                        new ExtendoCommand(extendo, 420),
 
                         //sample 2 retract extendo
                         new ParallelCommandGroup(
@@ -442,6 +447,7 @@ public class FiveSamplePreloadAuto extends OpMode {
                         ),
 
                         //sample 2 score
+                        new WaitCommand(150),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
 
                         //sample 2-3 retract and pre-extend
@@ -449,14 +455,17 @@ public class FiveSamplePreloadAuto extends OpMode {
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                                new PedroCommand(follower, paths.get(5)),
+                                new SequentialCommandGroup(
+                                        new PedroCommand(follower, paths.get(5)),
+                                        new ExtendoCommand(extendo, 400)
+                                ),
                                 new IntakeCommand(intake, -1)
 
                         ),
 
                         //sample 3 grab
 
-                        new ExtendoCommand(extendo, 420),
+
 
                         //sample 3 retract extendo
                         new ParallelCommandGroup(

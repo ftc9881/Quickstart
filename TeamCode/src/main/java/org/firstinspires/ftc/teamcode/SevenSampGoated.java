@@ -13,9 +13,7 @@ import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.SWEEPER_OUT_POSITI
 
 
 import com.arcrobotics.ftclib.command.CommandScheduler;
-import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
-import com.arcrobotics.ftclib.command.ParallelDeadlineGroup;
 import com.arcrobotics.ftclib.command.ParallelRaceGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
@@ -41,7 +39,6 @@ import org.firstinspires.ftc.teamcode.commands.IntakeUntilSevenCommand;
 import org.firstinspires.ftc.teamcode.commands.LiftCommand;
 import org.firstinspires.ftc.teamcode.commands.PedroCommand;
 import org.firstinspires.ftc.teamcode.commands.PivotCommand;
-import org.firstinspires.ftc.teamcode.commands.SubGrabCommand;
 import org.firstinspires.ftc.teamcode.commands.SweeperCommand;
 
 import org.firstinspires.ftc.teamcode.subsystems.ArmSubsystem;
@@ -61,8 +58,8 @@ import pedroPathing.constants.LConstants;
 
 
 
-@Autonomous(name = "TheOneAndOnlyGoatedAuto")
-public class TheOneAndOnlyGoatedAuto extends OpMode {
+@Autonomous(name = "SevenSampGoated")
+public class SevenSampGoated extends OpMode {
     public static class Index {
         int value;
         Index(int value) {
@@ -86,9 +83,6 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
     /** This is the variable where we store the state of our auto.
      * It is used by the pathUpdate method. */
     private int pathState;
-    private boolean pLoopLB = false;
-    private boolean pLoopRB = false;
-    private int xOffset = 0;
 
     public ArmSubsystem arm;
     public ClawSubsystem claw ;
@@ -100,30 +94,32 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
     public SweeperSubsystem sweeper;
 
     /** width: 14  //  height: 13
-    /** Start Position */
-    private final Pose startingPosition = new Pose(6.75, 112, Math.toRadians(270));
+     /** Start Position */
+    private final Pose startingPosition = new Pose(6.60, 113.5, Math.toRadians(270));
 //    private final Pose startingPosition = new Pose(61, 94.5, Math.toRadians(-90));
 
-    private final Pose dropPreloadPosition = new Pose(10.5, 128, Math.toRadians(315));
+    private final Pose dropPreloadPosition = new Pose(12.6, 132.0, Math.toRadians(315));
 
     /** Scoring Position (The Buckets) */
-    private final Pose bucketPosition = new Pose(13, 131.2, Math.toRadians(315));
+    private final Pose bucketPosition = new Pose(13.2, 132.9, Math.toRadians(315));
 
     /** First Yellow Sample */
-    private final Pose sampleOnePosition = new Pose(14, 130.5, Math.toRadians(-14));
+    private final Pose sampleOnePosition = new Pose(16.80, 128.5, Math.toRadians(-3));
 
-    private final Pose sampleTwoPosition = new Pose(14, 131, Math.toRadians(6));
+    /** Second Yellow Sample */
+    private final Pose sampleTwoPosition = new Pose(16.4, 135.6, Math.toRadians(0));
 
     /** Third Yellow Sample */
-    private final Pose sampleThreePosition = new Pose(14, 130.5, Math.toRadians(25));
+    private final Pose sampleThreePosition = new Pose(16.44, 131.4, Math.toRadians(32));
+
+    /** Teammate's Sample */
+    private final Pose teammateSamplePosition = new Pose(11.00, 110.0, Math.toRadians(270));
 
     /** Parking Position */
-    private final Pose subBucketPosition = new Pose(13.6, 132, Math.toRadians(315));
+    private final Pose ascentPosition = new Pose(61, 110, Math.toRadians(-90));
 
-    /** Sub position */
-    private final Pose submersiblePosition = new Pose(62, 99, Math.toRadians(-90));
-
-    private final Pose startingAcquisitionPosition = new Pose(58, 99, Math.toRadians(-90));
+    /** Control Point for Parking */
+    private final Pose submersiblePosition = new Pose(61, 98, Math.toRadians(-90));
 
     /** These are our Paths and PathChains that we will define in buildPaths() */
 //    private Path scorePreload, getSampleOne;
@@ -203,74 +199,121 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
                 .addPath(
                         // Line 6
                         new BezierLine(
-                                new Point(sampleThreePosition), new Point(subBucketPosition)
+                                new Point(sampleThreePosition), new Point(bucketPosition)
                         )
                 )
-                .setLinearHeadingInterpolation(sampleThreePosition.getHeading(), subBucketPosition.getHeading())
+                .setLinearHeadingInterpolation(sampleThreePosition.getHeading(), bucketPosition.getHeading())
                 .build());
-
-
 
         paths.add(new PathBuilder()
                 .addPath(
                         // Line 7
-                        new BezierCurve(
-                                new Point(subBucketPosition),
-                                new Point(56, 133, Point.CARTESIAN),
-                                new Point(submersiblePosition)
+                        new BezierLine(
+                                new Point(bucketPosition), new Point(teammateSamplePosition)
                         )
                 )
-                .setLinearHeadingInterpolation(subBucketPosition.getHeading(), submersiblePosition.getHeading())
+                .setLinearHeadingInterpolation(bucketPosition.getHeading(), teammateSamplePosition.getHeading())
                 .build());
 
         paths.add(new PathBuilder()
                 .addPath(
                         // Line 8
+                        new BezierLine(
+                                new Point(teammateSamplePosition), new Point(bucketPosition)
+                        )
+                )
+                .setLinearHeadingInterpolation(teammateSamplePosition.getHeading(), bucketPosition.getHeading())
+                .build());
+
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 9
+                        new BezierCurve(
+                                new Point(bucketPosition),
+                                new Point(25.720534629404618, 121.42891859052247, Point.CARTESIAN),
+                                new Point(62.1142162818955, 134, Point.CARTESIAN),
+                                new Point(submersiblePosition)
+                        )
+                )
+                .setTangentHeadingInterpolation()
+                .build());
+
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 10
                         new BezierCurve(
                                 new Point(submersiblePosition),
-                                new Point(51.6, 130, Point.CARTESIAN),
-                                new Point(subBucketPosition)
+                                new Point(62.1142162818955, 134, Point.CARTESIAN),
+                                new Point(25.720534629404618, 121.42891859052247, Point.CARTESIAN),
+                                new Point(bucketPosition)
                         )
                 )
-                .setLinearHeadingInterpolation(submersiblePosition.getHeading(), subBucketPosition.getHeading())
+                .setTangentHeadingInterpolation()
+                .setReversed(true)
                 .build());
-
         paths.add(new PathBuilder()
                 .addPath(
-                        // line 9, strafe to preinput
+                        // Line 11
                         new BezierLine(
-                                new Point(submersiblePosition),
-                                new Point(startingAcquisitionPosition)
+                                new Point(bucketPosition), new Point(teammateSamplePosition)
                         )
                 )
-                .setLinearHeadingInterpolation(submersiblePosition.getHeading(), startingAcquisitionPosition.getHeading())
+                .setLinearHeadingInterpolation(bucketPosition.getHeading(), teammateSamplePosition.getHeading())
                 .build());
 
         paths.add(new PathBuilder()
                 .addPath(
-                        // line 10, bucket to acquisition
+                        // Line 12
                         new BezierLine(
-                                new Point(subBucketPosition),
-                                new Point(startingAcquisitionPosition)
+                                new Point(teammateSamplePosition), new Point(bucketPosition)
                         )
                 )
-                .setLinearHeadingInterpolation(subBucketPosition.getHeading(), startingAcquisitionPosition.getHeading())
+                .setLinearHeadingInterpolation(teammateSamplePosition.getHeading(), bucketPosition.getHeading())
                 .build());
 
-        paths.add(new PathBuilder()
-                .addPath(
-                        // line 11, acquisition to bucket
-                        new BezierCurve(
-                                new Point(startingAcquisitionPosition),
-                                new Point(53, 131, Point.CARTESIAN),
-                                new Point(subBucketPosition)
-                        )
-                )
-                .setLinearHeadingInterpolation(startingAcquisitionPosition.getHeading(), subBucketPosition.getHeading())
-                .build());
-
-// END NORMAL PATHS
 /*
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 9
+                        new BezierCurve(
+                                new Point(bucketPosition), new Point(52.5, 132, Point.CARTESIAN), new Point(ascentPosition)
+                        )
+                )
+                .setLinearHeadingInterpolation(bucketPosition.getHeading(), ascentPosition.getHeading())
+                .build());
+
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 10
+                        new BezierCurve(
+                                new Point(ascentPosition), new Point(submersibleRamPosition)
+                        )
+                )
+                .setLinearHeadingInterpolation(ascentPosition.getHeading(), submersibleRamPosition.getHeading())
+                .build());
+
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 11
+                        new BezierCurve(
+                                new Point(submersibleRamPosition), new Point(ascentPosition)
+                        )
+                )
+                .setLinearHeadingInterpolation(submersibleRamPosition.getHeading(), ascentPosition.getHeading())
+                .build());
+
+        paths.add(new PathBuilder()
+                .addPath(
+                        // Line 12
+                        new BezierCurve(
+                                new Point(ascentPosition), new Point(52.5, 132, Point.CARTESIAN), new Point(bucketPosition)
+                        )
+                )
+                .setLinearHeadingInterpolation(ascentPosition.getHeading(), bucketPosition.getHeading())
+                .build());
+        */
+
+
         subs.add(new PathBuilder()
                 .addPath(
                         // Line 0
@@ -396,7 +439,7 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
                 .setTangentHeadingInterpolation()
                 .setReversed(true)
                 .build());
-*/
+
 
         //obsolete default paths
 
@@ -502,10 +545,6 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.addData("blue", sensor.isBlue());
-        telemetry.addData("red", sensor.isRed());
-        telemetry.addData("yellow", sensor.isYellow());
-
         telemetry.update();
     }
 
@@ -532,10 +571,12 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
         // COACH_DAVE: If the B button is pressed while init is performed then
         //  allianceColor is "red" otherwise "blue"
 
-        double totalDistanceTraveled = 0;
+        allianceColor = gamepad1.b ? "red" : "blue";
+
+        Index currentSubIndex = new Index(0);
         buildPaths();
 
-        follower.setMaxPower(1.0);
+        follower.setMaxPower(.75);
 
         adamIsTheGoat = CommandScheduler.getInstance();
 
@@ -558,123 +599,105 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
                         //Preload raise lift
                         new ParallelCommandGroup(
                                 new PedroCommand(follower, paths.get(0)),
-                                new LiftCommand(lift, 870),
+                                new LiftCommand(lift, 850),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(800),
-                                        //preextend for sample 1
-                                        new InstantCommand(() -> extendo.setTarget(380)),
+                                        new WaitCommand(650),
                                         new ParallelCommandGroup(
-                                                new ArmCommand(arm, ARM_UP_POSITION)
+                                                new ArmCommand(arm, ARM_UP_POSITION),
+                                                new PivotCommand(pivot, PIVOT_MID_POSITION)
                                         )
-
                                 )
                         ),
 
                         //preload drop sample
+                        new WaitCommand(200),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
-                        new WaitCommand(50),
+                        new WaitCommand(20),
 
-                        //sample 0 retract
+                        //sample 0-1 retract + pre-extend
                         new ParallelCommandGroup(
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
                                 new IntakeCommand(intake, -1),
-                                new PedroCommand(follower, paths.get(1))
+                                new SequentialCommandGroup(
+                                        new PedroCommand(follower, paths.get(1)),
+                                        new ExtendoCommand(extendo, 400)
+                                )
                         ),
 
-                        //sample 1 extend
-//                        new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                        new WaitCommand(50),
-
-
+                        new WaitCommand(500),
                         //sample 1 retract extendo
                         new ParallelCommandGroup(
                                 new PivotCommand(pivot, PIVOT_UP_POSITION),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(300),
-                                        new IntakeCommand(intake, INTAKE_SLOW_SPEED)
-                                        ),
+                                new IntakeCommand(intake, INTAKE_SLOW_SPEED),
+                                new ExtendoCommand(extendo, 0)
+                        ),
+
+                        new WaitCommand(250),
+                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
+                        new WaitCommand(50),
+
+                        //sample 1 raise lift
+                        new ParallelCommandGroup(
                                 new PedroCommand(follower, paths.get(2)),
+                                new LiftCommand(lift, 850),
                                 new SequentialCommandGroup(
-                                        new ExtendoCommand(extendo, 0),
-                                        new WaitCommand(200),
-                                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(75),
-                                        //sample 1 lift extend
+                                        new WaitCommand(450),
                                         new ParallelCommandGroup(
-                                                new LiftCommand(lift, 840),
-
-                                                new SequentialCommandGroup(
-                                                        new WaitCommand(250),
-                                                        //sample 2 extend
-                                                        new InstantCommand(() -> extendo.setTarget(358)),
-                                                        new ParallelCommandGroup(
-                                                                new ArmCommand(arm, ARM_UP_POSITION)
-
-                                                        )
-                                                )
+                                                new PivotCommand(pivot, PIVOT_MID_POSITION),
+                                                new ArmCommand(arm, ARM_UP_POSITION)
                                         )
                                 )
-
-
                         ),
 
                         //sample 1 score
-                        new WaitCommand(150),
+                        new WaitCommand(350),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
                         new WaitCommand(50),
 
-                        //sample 1 retract
+                        //sample 1-2 retract + pre-extend
                         new ParallelCommandGroup(
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
                                 new IntakeCommand(intake, -1),
-                                new PedroCommand(follower, paths.get(3))
-
+                                new SequentialCommandGroup(
+                                        new PedroCommand(follower, paths.get(3)),
+                                        new ExtendoCommand(extendo, 380)
+                                )
                         ),
 
-//                        new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                        new WaitCommand(50),
-
-
+                        new WaitCommand(500),
 
 
                         //sample 2 retract extendo
                         new ParallelCommandGroup(
                                 new PivotCommand(pivot, PIVOT_UP_POSITION),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(300),
-                                        new IntakeCommand(intake, INTAKE_SLOW_SPEED)
-                                ),
+                                new IntakeCommand(intake, INTAKE_SLOW_SPEED + .1),
+                                new ExtendoCommand(extendo, 0)
+                        ),
+
+                        new WaitCommand(600),
+                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
+                        new WaitCommand(50),
+
+                        //sample 2 extend lift
+                        new ParallelCommandGroup(
                                 new PedroCommand(follower, paths.get(4)),
+                                new LiftCommand(lift, 850),
                                 new SequentialCommandGroup(
-                                        new ExtendoCommand(extendo, 0),
-                                        new WaitCommand(200),
-                                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(70),
-                                        //sample 2 lift extend
+                                        new WaitCommand(500),
                                         new ParallelCommandGroup(
-                                                new LiftCommand(lift, 840),
-
-                                                new SequentialCommandGroup(
-                                                        new WaitCommand(250),
-                                                        //sample 3 preextend
-                                                        new InstantCommand(() -> extendo.setTarget(410)),
-                                                        new ParallelCommandGroup(
-                                                                new ArmCommand(arm, ARM_UP_POSITION)
-
-                                                        )
-                                                )
+                                                new PivotCommand(pivot, PIVOT_MID_POSITION),
+                                                new ArmCommand(arm, ARM_UP_POSITION)
                                         )
                                 )
-
 
                         ),
 
                         //sample 2 score
-                        new WaitCommand(150),
+                        new WaitCommand(200),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
                         new WaitCommand(50),
 
@@ -683,174 +706,177 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
                                 new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                                new IntakeCommand(intake, -1),
-                                new PedroCommand(follower, paths.get(5))
+                                new SequentialCommandGroup(
+                                        new PedroCommand(follower, paths.get(5)),
+                                        new ExtendoCommand(extendo, 410)
+                                ),
+                                new IntakeCommand(intake, -8)
+
                         ),
 
                         //sample 3 grab
 
-//                        new PivotCommand(pivot, PIVOT_DOWN_POSITION),
-                        new WaitCommand(200),
+                        new WaitCommand(500),
+
 
                         //sample 3 retract extendo
                         new ParallelCommandGroup(
                                 new PivotCommand(pivot, PIVOT_UP_POSITION),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(300),
-                                        new IntakeCommand(intake, INTAKE_SLOW_SPEED)
-                                ),
-                                new PedroCommand(follower, paths.get(6)),
-                                new SequentialCommandGroup(
-                                        new ExtendoCommand(extendo, 0),
-                                        new WaitCommand(200),
-                                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(70),
-                                        //sample 3 lift extend
-                                        new ParallelCommandGroup(
-                                                new LiftCommand(lift, 840),
-
-                                                new SequentialCommandGroup(
-                                                        new WaitCommand(250),
-                                                        new ParallelCommandGroup(
-                                                                new ArmCommand(arm, ARM_UP_POSITION)
-
-                                                        )
-
-                                                )
-                                        )
-                                )
-
-
+                                new IntakeCommand(intake, INTAKE_SLOW_SPEED),
+                                new ExtendoCommand(extendo, 0)
                         ),
 
+                        new WaitCommand(305),
+                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
+                        new WaitCommand(50),
+
+                        //sample 3 lift extend
+                        new ParallelCommandGroup(
+                                new PedroCommand(follower, paths.get(6)),
+                                new LiftCommand(lift, 850),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(500),
+                                        new ParallelCommandGroup(
+                                                new ArmCommand(arm, ARM_UP_POSITION)
+                                        )
+                                )
+                        ),
 
                         //sample 3 score
-                        new WaitCommand(150),
+                        new WaitCommand(100),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
                         new WaitCommand(50),
 
-
-
-                        //SUB CYCLE 1
                         new ParallelCommandGroup(
                                 new ArmCommand(arm, ARM_DOWN_POSITION),
                                 new LiftCommand(lift, 0),
-                                new PivotCommand(pivot, PIVOT_MID_POSITION),
-                                new PedroCommand(follower, paths.get(7)),
-                                new InstantCommand(() -> extendo.setTarget(130)),
-                                new SweeperCommand(sweeper, 0.53) // artifically shorter for sussy auto
+                                new PedroCommand(follower, paths.get(9), false),
+                                new ExtendoCommand(extendo, 130)
                         ),
 
-
+                        //sussy 6 samp
+                        new SweeperCommand(sweeper, SWEEPER_IN_POSITION),
+                        new PivotCommand(pivot, PIVOT_MID_POSITION),
+                        new WaitCommand(120),
                         new SweeperCommand(sweeper, SWEEPER_OUT_POSITION),
-                        new IntakeCommand(intake, -1),
                         new WaitCommand(50),
-                        new SubGrabCommand(pivot, intake, extendo, sensor, follower, subs, totalDistanceTraveled, allianceColor, submersiblePosition),
+                        new PivotCommand(pivot, PIVOT_DOWN_POSITION),
 
-                        //retraction -> lift and drive, sub cycle 1
+                        new IntakeUntilSevenCommand(pivot, intake, extendo, sensor, follower, subs, currentSubIndex, allianceColor).withTimeout(4000),
+
+                        new PivotCommand(pivot, PIVOT_UP_POSITION),
+                        new IntakeCommand(intake, INTAKE_SLOW_SPEED),
+
+
                         new ParallelCommandGroup(
-                                new PivotCommand(pivot, PIVOT_UP_POSITION),
-                                new PedroCommand(follower, paths.get(8)),
-                                //retraction intake sequence
+                                new PedroCommand(follower, subscores.get(currentSubIndex.getValue())),
                                 new SequentialCommandGroup(
-                                        new ExtendoCommand(extendo,0),
-                                        new WaitCommand(100),
+                                        new ExtendoCommand(extendo, 0),
                                         new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(70),
+                                        new WaitCommand(100),
                                         new ParallelCommandGroup(
                                                 new LiftCommand(lift, 850),
-                                                new ArmCommand(arm, ARM_UP_POSITION)
+                                                new SequentialCommandGroup(
+                                                        new WaitCommand(500),
+                                                        new ParallelCommandGroup(
+                                                                new ArmCommand(arm, ARM_UP_POSITION),
+                                                                new PivotCommand(pivot, PIVOT_MID_POSITION)
+                                                        )
+                                                )
                                         )
+
 
                                 )
 
-
                         ),
 
+                        new WaitCommand(100),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
-                        new WaitCommand(70),
+                        new WaitCommand(50),
 
-
-                        //SUB CYCLE 2, NO SWEEP
-                        new ParallelCommandGroup(
-                                new ArmCommand(arm, ARM_DOWN_POSITION),
+                        /*new ParallelCommandGroup(
+                                new PedroCommand(follower, paths.get(9), false),
                                 new LiftCommand(lift, 0),
-                                new PivotCommand(pivot, PIVOT_MID_POSITION),
-                                new PedroCommand(follower, paths.get(7)),
-                                new IntakeCommand(intake, -1),
-                                new ExtendoCommand(extendo, 130)
-
+                                new ArmCommand(arm, ARM_DOWN_POSITION),
+                                new IntakeCommand(intake, -1)
                         ),
 
+                        new ExtendoCommand(extendo,150),
+                        new PivotCommand(pivot, PIVOT_DOWN_POSITION),
+                        new IntakeUntilSevenCommand(pivot, intake, extendo, sensor, follower, subs, currentSubIndex, allianceColor).withTimeout(5000),
 
-                        new SubGrabCommand(pivot, intake, extendo, sensor, follower, subs, totalDistanceTraveled, allianceColor, submersiblePosition),
-                        
-                        //retraction -> lift and drive, sub cycle 2
+                        new IntakeCommand(intake, INTAKE_SLOW_SPEED),
+                        new PivotCommand(pivot, PIVOT_UP_POSITION),
+
                         new ParallelCommandGroup(
-                                new PivotCommand(pivot, PIVOT_UP_POSITION),
-                                new PedroCommand(follower, paths.get(8)),
-                                //retraction intake sequence
+                                new PedroCommand(follower, subscores.get(currentSubIndex.getValue()), false),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(100),
+                                        new ExtendoCommand(extendo, 0),
                                         new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(70),
+                                        new WaitCommand(100),
                                         new ParallelCommandGroup(
                                                 new LiftCommand(lift, 850),
-                                                new ArmCommand(arm, ARM_UP_POSITION)
+                                                new SequentialCommandGroup(
+                                                        new WaitCommand(400),
+                                                        new ParallelCommandGroup(
+                                                                new ArmCommand(arm, ARM_UP_POSITION),
+                                                                new PivotCommand(pivot, PIVOT_MID_POSITION)
+                                                        )
+                                                )
                                         )
+
 
                                 )
 
-
                         ),
 
+                        new WaitCommand(50),
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
-                        new WaitCommand(70),
+                        new WaitCommand(50),
+                        */
 
 
-                        //SUB CYCLE 3, NO SWEEP
                         new ParallelCommandGroup(
-                                new ArmCommand(arm, ARM_DOWN_POSITION),
-                                new LiftCommand(lift, 0),
-                                new PivotCommand(pivot, PIVOT_MID_POSITION),
-                                new PedroCommand(follower, paths.get(10)),
-                                new IntakeCommand(intake, -1),
-                                new ExtendoCommand(extendo, 130)
-
-                        ),
-
-                        new SubGrabCommand(pivot, intake, extendo, sensor, follower, subs, totalDistanceTraveled, allianceColor, startingAcquisitionPosition),
-
-
-                        //retraction -> lift and drive, sub cycle 3
-                        new ParallelCommandGroup(
-                                new PivotCommand(pivot, PIVOT_UP_POSITION),
                                 new PedroCommand(follower, paths.get(11)),
-                                //retraction intake sequence
                                 new SequentialCommandGroup(
-                                        new WaitCommand(100),
-                                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
-                                        new WaitCommand(70),
+                                        new WaitCommand(200),
                                         new ParallelCommandGroup(
-                                                new LiftCommand(lift, 850),
-                                                new ArmCommand(arm, ARM_UP_POSITION)
+                                                new ArmCommand(arm, ARM_DOWN_POSITION),
+                                                new LiftCommand(lift, 0),
+                                                new ExtendoCommand(extendo, 180),
+                                                new IntakeCommand(intake, -1),
+                                                new PivotCommand(pivot, PIVOT_DOWN_POSITION)
                                         )
 
                                 )
 
+                        ),
+                        new ExtendoCommand(extendo, 380),
+                        new ParallelCommandGroup(
+                                new PivotCommand(pivot, PIVOT_UP_POSITION),
+                                new SequentialCommandGroup(
+                                        new ExtendoCommand(extendo, 0),
+                                        new ClawCommand(claw, CLAW_CLOSED_POSITION),
+                                        new WaitCommand(80),
+                                        new ParallelCommandGroup(
+                                                new LiftCommand(lift,850),
+                                                new SequentialCommandGroup(
+                                                        new WaitCommand(500),
+                                                        new ArmCommand(arm, ARM_UP_POSITION)
+                                                )
+
+                                                )
+
+                                        ),
+                                new PedroCommand(follower, paths.get(12))
 
                         ),
 
                         new ClawCommand(claw, CLAW_OPEN_POSITION),
-                        new WaitCommand(70),
-
-                        //park
-                        new ParallelCommandGroup(
-                                new ArmCommand(arm, ARM_DOWN_POSITION),
-                                new LiftCommand(lift, 0),
-                                new PedroCommand(follower, paths.get(7))
-
-                        )
+                        new WaitCommand(100),
+                        new ArmCommand(arm, ARM_DOWN_POSITION),
+                        new PivotCommand(pivot, PIVOT_MID_POSITION),
+                        new LiftCommand(lift, 0)
 
 
 
@@ -858,8 +884,7 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
 
 
 
-
-                        )
+                )
         );
 
 
@@ -868,34 +893,6 @@ public class TheOneAndOnlyGoatedAuto extends OpMode {
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {
-        //color selection
-        if (gamepad1.a) {
-            allianceColor = "red";
-        } else if (gamepad1.b) {
-            allianceColor = "blue";
-        }
-
-        //preinput shenanigans
-
-        if (gamepad1.left_bumper && !pLoopLB) {
-            xOffset += 1;
-            pLoopLB = true;
-        }
-        if (!gamepad1.left_bumper) {
-            pLoopLB = false;
-        }
-
-        if (gamepad1.right_bumper && !pLoopRB) {
-            xOffset -= 1;
-            pLoopRB = true;
-        }
-        if (!gamepad1.right_bumper) {
-            pLoopRB = false;
-        }
-
-
-
-
         // Feedback to Driver Hub
         telemetry.addData("allianceColor", allianceColor);
         telemetry.update();

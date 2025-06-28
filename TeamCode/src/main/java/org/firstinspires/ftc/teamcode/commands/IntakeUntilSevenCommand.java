@@ -24,11 +24,11 @@ import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.INTAKE_SLOW_SPEED;
 import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.PIVOT_DOWN_POSITION;
 import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.PIVOT_MID_POSITION;
 import static org.firstinspires.ftc.teamcode.RobotTeleopLotus.PIVOT_UP_POSITION;
-import org.firstinspires.ftc.teamcode.TheOneAndOnlyGoatedAuto.*;
+import org.firstinspires.ftc.teamcode.SevenSampGoated.*;
 
 import java.util.ArrayList;
 
-public class IntakeUntilCommand extends CommandBase {
+public class IntakeUntilSevenCommand extends CommandBase {
     private final PivotSubsystem pivot;
     private final IntakeSubsystem intake;
     private final ExtendoSubsystem extendo;
@@ -38,12 +38,12 @@ public class IntakeUntilCommand extends CommandBase {
     private Index index;
     private String color; // color of wanted sample
     private final int initialExtendoPosition = 130;
-    private final int maxExtendoPosition = 400;
+    private final int maxExtendoPosition = 360;
     private boolean sampleDetected = false;
     private boolean isGoodSample = false;
     private ElapsedTime runtime = new ElapsedTime();
 
-    public IntakeUntilCommand(PivotSubsystem pivot, IntakeSubsystem intake, ExtendoSubsystem extendo,
+    public IntakeUntilSevenCommand(PivotSubsystem pivot, IntakeSubsystem intake, ExtendoSubsystem extendo,
                               SensorSubsystem colorSensor, Follower follower,
                               ArrayList<PathChain> subs, Index index, String color) {
         this.pivot = pivot;
@@ -67,7 +67,7 @@ public class IntakeUntilCommand extends CommandBase {
 
         CommandScheduler.getInstance().schedule(
                 new SequentialCommandGroup(
-                    new PivotCommand(pivot, PIVOT_DOWN_POSITION)
+                        new PivotCommand(pivot, PIVOT_DOWN_POSITION)
                 )
         );
     }
@@ -112,7 +112,17 @@ public class IntakeUntilCommand extends CommandBase {
                             )
                     )
             );
-        } else {
+        } else if (index.getValue() == 4) {
+            CommandScheduler.getInstance().schedule(
+                    new SequentialCommandGroup(
+                            new PivotCommand(pivot, PIVOT_UP_POSITION),
+                            new ParallelCommandGroup(
+                                    new ExtendoCommand(extendo, 130), // Retract extendo
+                                    new IntakeCommand(intake, INTAKE_SLOW_SPEED) // Ensure intake is stopped
+                            )
+                    )
+            );
+        }else {
             sampleDetected = false;
             index.plus();
             CommandScheduler.getInstance().schedule(
@@ -124,7 +134,7 @@ public class IntakeUntilCommand extends CommandBase {
                             ),
                             new WaitCommand(150), // Give time to settle
                             new PedroCommand(follower, subs.get(index.getValue() - 1)), // Move to next sample position
-                            new IntakeUntilCommand(pivot, intake, extendo, sensor, follower, subs, index, color).withTimeout(4000) // Try again
+                            new IntakeUntilSevenCommand(pivot, intake, extendo, sensor, follower, subs, index, color).withTimeout(2000) // Try again
                     )
             );
         }

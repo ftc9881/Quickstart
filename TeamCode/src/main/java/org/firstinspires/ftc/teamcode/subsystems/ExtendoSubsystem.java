@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class ExtendoSubsystem extends SubsystemBase  {
     private DcMotor extendoMotor;
     private int target;
-    private int tolerance = 5;
+    private int tolerance = 10;
 
     public ExtendoSubsystem (HardwareMap hMap) {
         extendoMotor = hMap.get(DcMotor.class, "extendo");
